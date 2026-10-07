@@ -56,7 +56,7 @@ main{padding:8px 16px 60px}
 .stars button.on{color:var(--gold)}
 .avg{font-size:.75rem;color:var(--muted);min-width:42px}
 .fav{border:0;background:none;font-size:1.15rem;cursor:pointer;color:#c8ccd8}
-.fav.on{color:var(--gold)}
+.fav{font-size:1.3rem;line-height:1}.fav.on{color:#e11d48}
 .empty{text-align:center;color:var(--muted);padding:40px 0}
 .more{display:block;margin:6px auto 12px;font:inherit;font-size:.9rem;border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 14px;cursor:pointer}
 .howto{font-size:.85rem;color:var(--muted);margin:10px 0 0}
@@ -93,7 +93,7 @@ const FMT = {pdf:["📕","PDF","#e11d48","#fde8ec"],word:["📘","Word","#2563eb
   video:["🎬","סרטון","#dc2626","#fde8e8"],game:["🎮","משחק מקוון","#7c3aed","#f1eafe"],web:["🔗","קישור","#4f46e5","#eceafd"],
   folder:["📁","תיקייה","#ca8a04","#fdf6e0"],excel:["📗","Excel","#16a34a","#e7f7ec"],image:["🖼️","תמונה","#0d9488","#e0f5f1"],
   audio:["🎵","שמע","#0891b2","#e0f5fa"]};
-const FILTERS = [["","הכל"],["pdf","להדפסה"],["word","לעריכה"],["ppt","מצגות"],["video","סרטונים"],["game","משחקים מקוונים"],["fav","⭐ המועדפים שלי"]];
+const FILTERS = [["","הכל"],["pdf","להדפסה"],["word","לעריכה"],["ppt","מצגות"],["video","סרטונים"],["game","משחקים מקוונים"],["fav","♥ השמורים שלי"]];
 let D, state = {tab:null, q:"", fmt:"", src:"", grade:"", sort:"rate"}, PAGE = 40;
 const LS = k => "cat2_" + (D ? D.book : "") + "_" + k;
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(LS(k))) ?? d; } catch(e) { return d; } };
@@ -141,8 +141,8 @@ function rowHtml(it, showTab) {
     <div class="ti"><div class="name">${esc(it.t)}</div>
       <div class="meta">${it.gr ? `<span class="badge grade">${esc(it.gr)}</span>` : ""}${tabL ? `<span class="badge tabname">${esc(tabL)}</span>` : ""}${it.s ? `<span class="badge">${esc(it.s)}</span>` : ""}${it.n ? `<span class="badge new">חדש</span>` : ""}</div></div>
     <div class="btns">${btns}</div>
-    <div class="side"><span class="stars">${stars}</span><span class="avg">${r.count ? r.avg.toFixed(1) + " (" + r.count + ")" : ""}</span>
-      <button class="fav${FAV.has(k) ? " on" : ""}" data-fav="1" title="למועדפים">${FAV.has(k) ? "★" : "☆"}</button></div>
+    <div class="side"><span class="stars" title="דירוג משותף – לוחצים על כוכב כדי לדרג">${stars}</span><span class="avg">${r.count ? r.avg.toFixed(1) + " (" + r.count + ")" : ""}</span>
+      <button class="fav${FAV.has(k) ? " on" : ""}" data-fav="1" title="שמירה ברשימה האישית שלי">${FAV.has(k) ? "♥" : "♡"}</button></div>
   </div>`;
 }
 
@@ -162,7 +162,7 @@ function render() {
   renderTabs();
   const items = visibleItems(), main = document.getElementById("main");
   const cross = !!state.q.trim() || state.fmt === "fav";
-  if (!items.length) { main.innerHTML = `<div class="empty">${state.fmt === "fav" ? "עוד אין מועדפים – לוחצים על ☆ ליד חומר כדי לשמור אותו כאן" : "לא נמצאו חומרים. נסו מילה אחרת או לשונית אחרת."}</div>`; return; }
+  if (!items.length) { main.innerHTML = `<div class="empty">${state.fmt === "fav" ? "עוד לא שמרתם חומרים – לוחצים על ♡ ליד חומר כדי לשמור אותו כאן" : "לא נמצאו חומרים. נסו מילה אחרת או לשונית אחרת."}</div>`; return; }
   const byCat = {}; items.forEach(i => (byCat[i.c] = byCat[i.c] || []).push(i));
   main.innerHTML = D.cats.filter(c => byCat[c.k]).map(c => {
     const list = sortItems(byCat[c.k]);
@@ -203,7 +203,7 @@ document.addEventListener("click", async e => {
     return loadRatings(list);
   }
   const row = t.closest(".row"); if (!row) return; const k = row.dataset.id;
-  if (t.dataset.fav) { FAV.has(k) ? FAV.delete(k) : FAV.add(k); save("fav", [...FAV]); t.classList.toggle("on"); t.textContent = FAV.has(k) ? "★" : "☆"; return; }
+  if (t.dataset.fav) { FAV.has(k) ? FAV.delete(k) : FAV.add(k); save("fav", [...FAV]); t.classList.toggle("on"); t.textContent = FAV.has(k) ? "♥" : "♡"; return; }
   if (t.dataset.rate) {
     const v = +t.dataset.rate, old = MINE[k] || 0; if (v === old) return;
     MINE[k] = v; save("mine", MINE);
