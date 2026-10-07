@@ -113,7 +113,7 @@ function visibleItems() {
     if (state.fmt === "fav") { if (!FAV.has(keyOf(it))) return false; }
     else if (state.fmt && !it.files.some(f => f.f.replace("achiya:", "") === state.fmt)) return false;
     if (state.src && it.s !== state.src) return false;
-    if (state.grade && it.gr !== state.grade) return false;
+    if (state.grade && it.gr && it.gr !== state.grade) return false;   // unknown grade stays visible
     if (q) return norm(it.t).includes(q);
     if (state.fmt === "fav") return true;
     return it.tab === state.tab;
