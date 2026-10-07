@@ -44,6 +44,7 @@ main{padding:8px 16px 60px}
 .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
 .badge{font-size:.72rem;border-radius:999px;padding:1px 8px;background:var(--accent-soft);color:#4338ca;white-space:nowrap}
 .badge.tabname{background:#ecfdf5;color:#047857}
+.badge.grade{background:#fdf2f8;color:#be185d}
 .badge.new{background:#fff7ed;color:#c2410c}
 .btns{display:flex;gap:6px;flex-wrap:wrap}
 .btn{font-size:.8rem;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:3px 9px;background:#fff;white-space:nowrap}
@@ -74,6 +75,7 @@ main{padding:8px 16px 60px}
   <div class="search">
     <input id="q" type="search" placeholder="חיפוש בכל הפרשות – למשל: מרגלים, תפזורת, מבחן…" autocomplete="off">
     <select id="src" aria-label="מקור"><option value="">כל המקורות</option></select>
+    <select id="grade" aria-label="כיתה"><option value="">כל הכיתות</option></select>
     <select id="sort" aria-label="סדר"><option value="rate">המדורגים קודם</option><option value="abc">לפי א״ב</option></select>
   </div>
   <div class="chips" id="fmt"></div>
@@ -88,7 +90,7 @@ main{padding:8px 16px 60px}
 const FMT = {pdf:["📕","PDF להדפסה"],word:["📘","Word לעריכה"],ppt:["📊","מצגת"],video:["🎬","סרטון"],game:["🎮","משחק מקוון"],
   web:["🔗","קישור"],folder:["📁","תיקייה"],excel:["📗","Excel"],image:["🖼️","תמונה"],audio:["🎵","שמע"]};
 const FILTERS = [["","הכל"],["pdf","להדפסה"],["word","לעריכה"],["ppt","מצגות"],["video","סרטונים"],["game","משחקים מקוונים"],["fav","⭐ המועדפים שלי"]];
-let D, state = {tab:null, q:"", fmt:"", src:"", sort:"rate"}, PAGE = 40;
+let D, state = {tab:null, q:"", fmt:"", src:"", grade:"", sort:"rate"}, PAGE = 40;
 const LS = k => "cat2_" + (D ? D.book : "") + "_" + k;
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(LS(k))) ?? d; } catch(e) { return d; } };
 const save = (k, v) => { try { localStorage.setItem(LS(k), JSON.stringify(v)); } catch(e) {} };
@@ -109,8 +111,9 @@ function visibleItems() {
   const q = norm(state.q.trim());
   return D.items.filter(it => {
     if (state.fmt === "fav") { if (!FAV.has(keyOf(it))) return false; }
-    else if (state.fmt && !it.files.some(f => f.f === state.fmt)) return false;
+    else if (state.fmt && !it.files.some(f => f.f.replace("achiya:", "") === state.fmt)) return false;
     if (state.src && it.s !== state.src) return false;
+    if (state.grade && it.gr !== state.grade) return false;
     if (q) return norm(it.t).includes(q);
     if (state.fmt === "fav") return true;
     return it.tab === state.tab;
@@ -126,19 +129,23 @@ function renderTabs() {
 function rowHtml(it, showTab) {
   const r = rating(it), k = keyOf(it), mine = MINE[k] || 0, shown = mine || Math.round(r.avg);
   const tabL = showTab ? (D.tabs.find(t => t.k === it.tab) || {}).l : "";
-  const icon = (FMT[it.files[0].f] || FMT.web)[0];
-  const btns = it.files.map(f => `<a class="btn" href="${esc(f.u)}" target="_blank" rel="noopener">${(FMT[f.f] || FMT.web)[1]}</a>`).join("");
+  const icon = (FMT[it.files[0].f.replace("achiya:", "")] || FMT.web)[0];
+  const btns = it.files.map(f => `<a class="btn" href="${esc(f.u)}" target="_blank" rel="noopener">${btnLabel(f.f)}</a>`).join("");
   const stars = [1,2,3,4,5].map(v => `<button class="${v <= shown ? "on" : ""}" data-rate="${v}" aria-label="דירוג ${v}">★</button>`).join("");
   return `<div class="row" data-id="${esc(k)}">
     <div class="ic">${icon}</div>
     <div class="ti"><div class="name">${esc(it.t)}</div>
-      <div class="meta">${tabL ? `<span class="badge tabname">${esc(tabL)}</span>` : ""}${it.s ? `<span class="badge">${esc(it.s)}</span>` : ""}${it.n ? `<span class="badge new">חדש</span>` : ""}</div></div>
+      <div class="meta">${it.gr ? `<span class="badge grade">${esc(it.gr)}</span>` : ""}${tabL ? `<span class="badge tabname">${esc(tabL)}</span>` : ""}${it.s ? `<span class="badge">${esc(it.s)}</span>` : ""}${it.n ? `<span class="badge new">חדש</span>` : ""}</div></div>
     <div class="btns">${btns}</div>
     <div class="side"><span class="stars">${stars}</span><span class="avg">${r.count ? r.avg.toFixed(1) + " (" + r.count + ")" : ""}</span>
       <button class="fav${FAV.has(k) ? " on" : ""}" data-fav="1" title="למועדפים">${FAV.has(k) ? "★" : "☆"}</button></div>
   </div>`;
 }
 
+function btnLabel(f) {
+  if (f.startsWith("achiya:")) { const k = f.slice(7); return "באתר אחיה" + (FMT[k] && k !== "web" ? " · " + FMT[k][1].split(" ")[0] : ""); }
+  return (FMT[f] || FMT.web)[1];
+}
 function sortItems(arr) {
   if (state.sort === "abc") return arr.sort((a, b) => a.t.localeCompare(b.t, "he"));
   return arr.sort((a, b) => (rating(b).avg * Math.min(rating(b).count, 3)) - (rating(a).avg * Math.min(rating(a).count, 3)));
@@ -199,6 +206,7 @@ document.addEventListener("click", async e => {
 });
 let qTimer; document.getElementById("q").addEventListener("input", e => { clearTimeout(qTimer); qTimer = setTimeout(() => { state.q = e.target.value; render(); }, 200); });
 document.getElementById("src").addEventListener("change", e => { state.src = e.target.value; render(); });
+document.getElementById("grade").addEventListener("change", e => { state.grade = e.target.value; render(); });
 document.getElementById("sort").addEventListener("change", e => { state.sort = e.target.value; render(); });
 window.addEventListener("ratings-ready", () => D && render());
 
@@ -211,6 +219,9 @@ fetch("data.json").then(r => r.json()).then(data => {
   document.getElementById("sub").textContent = `${D.items.length.toLocaleString("he")} חומרים לפי פרשות • בוחרים פרשה, ואז מה צריך לשיעור`;
   const srcs = [...new Set(D.items.map(i => i.s).filter(Boolean))].sort((a, b) => a.localeCompare(b, "he"));
   document.getElementById("src").insertAdjacentHTML("beforeend", srcs.map(s => `<option>${esc(s)}</option>`).join(""));
+  const grades = ["הגיל הרך", "כיתות א, ב", "כיתות ג, ד, ה", "כיתות ו, ז, ח", "מורים", "הורים"].filter(g => D.items.some(i => i.gr === g));
+  document.getElementById("grade").insertAdjacentHTML("beforeend", grades.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join(""));
+  if (!grades.length) document.getElementById("grade").style.display = "none";
   const h = decodeURIComponent(location.hash.slice(1));
   state.tab = D.tabs.some(t => t.k === h) ? h : (D.tabs[1] || D.tabs[0]).k;
   renderChips(); render();
