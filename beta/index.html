@@ -50,6 +50,26 @@ main{padding:8px 16px 60px}
 .row{display:flex;gap:10px;align-items:center;padding:9px 16px;border-top:1px solid var(--line);flex-wrap:wrap}
 .row:hover{background:#fafbff}
 .ic{font-size:1.2rem;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.th{width:62px;height:80px;border-radius:8px;flex:0 0 auto;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;border:1px solid var(--line);background:#f4f5fa;position:relative;text-decoration:none}
+.th img{width:100%;height:100%;object-fit:cover;object-position:top;display:block;background:#fff}
+.th.wide{width:96px;height:62px}
+.th .fb{display:none;width:100%;height:100%;align-items:center;justify-content:center}
+.th.noimg img{display:none}.th.noimg .fb{display:flex}
+#peek{position:fixed;z-index:50;pointer-events:none;display:none;background:#fff;border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 12px 34px rgba(0,0,0,.22);padding:6px;max-width:340px}
+#peek img{display:block;max-width:326px;max-height:440px;border-radius:6px}
+.view{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.view button{border:0;background:none;font:inherit;font-size:.85rem;padding:6px 11px;cursor:pointer;color:var(--muted)}
+.view button.on{background:var(--accent);color:#fff;font-weight:700}
+.rows{display:block}
+.grid .rows{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;padding:14px}
+.grid .row{flex-direction:column;align-items:stretch;border:1px solid var(--line);border-radius:14px;padding:0 0 10px;gap:8px;background:#fff;overflow:hidden}
+.grid .row:hover{box-shadow:0 6px 18px rgba(30,27,75,.12)}
+.grid .th,.grid .th.wide{width:100%;height:auto;aspect-ratio:4/3;border:0;border-bottom:1px solid var(--line);border-radius:0;font-size:2.6rem}
+.grid .ti{flex:0 0 auto;padding:0 12px}
+.grid .btns{padding:0 12px}
+.grid .side{padding:0 12px;justify-content:space-between}
 .ti{flex:1 1 240px;min-width:0}
 .ti .name{font-weight:600;font-size:1.02rem;word-break:break-word;line-height:1.35}
 .meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}
@@ -79,7 +99,9 @@ main{padding:8px 16px 60px}
   .tabs{gap:5px;padding:10px 12px 2px}.tab{font-size:.82rem;padding:5px 7px 5px 9px;border-radius:10px}.tab .n{font-size:.68rem}
   .tools{position:static}.fld{flex:1 1 30%}.fld select{width:100%}header{padding:14px 16px 12px}.sub{font-size:.85rem}
   .chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.chip{flex:0 0 auto}
-  .search select{flex:1 1 40%}.tools{padding:8px 12px}.row{padding:9px 12px}.side{width:100%;justify-content:flex-start;padding-inline-start:38px}}
+  .search select{flex:1 1 40%}.tools{padding:8px 12px}.row{padding:9px 12px}.side{width:100%;justify-content:flex-start;padding-inline-start:0}
+  .th{width:50px;height:64px}.th.wide{width:80px;height:52px}.ti{flex:1 1 calc(100% - 100px)}
+  .grid .rows{grid-template-columns:1fr 1fr;gap:10px;padding:10px}.grid .ti{flex:0 0 auto}.grid .ti .name{font-size:.92rem}}
 </style>
 </head>
 <body>
@@ -97,7 +119,8 @@ main{padding:8px 16px 60px}
     <div class="fld"><label for="src">מקור</label><select id="src"><option value="">כל המקורות</option></select></div>
     <div class="fld"><label for="sort">סדר</label><select id="sort"><option value="cv">לפי פרק ופסוק</option><option value="abc">לפי א״ב</option><option value="rate">המדורגים קודם</option></select></div>
   </div>
-  <div class="chips"><span class="lbl">סוג חומר:</span><span id="fmt" class="chips" style="margin:0"></span></div>
+  <div class="chips"><span class="lbl">סוג חומר:</span><span id="fmt" class="chips" style="margin:0"></span>
+    <span class="view" role="group" aria-label="תצוגה" style="margin-inline-start:auto"><button data-view="list">☰ רשימה</button><button data-view="grid">▦ כרטיסים</button></span></div>
   <div class="active" id="active"></div>
 </div></div>
 
@@ -156,7 +179,7 @@ function rowHtml(it, showTab) {
   const btns = it.files.map(btnHtml).join("");
   const stars = [1,2,3,4,5].map(v => `<button class="${v <= mine ? "on" : ""}" data-rate="${v}" aria-label="דירוג ${v}">★</button>`).join("");
   return `<div class="row" data-id="${esc(k)}">
-    <div class="ic" style="background:${(FMT[it.files[0].f.replace("achiya:", "")] || FMT.web)[3]}">${icon}</div>
+    ${thumbHtml(it, icon)}
     <div class="ti"><div class="name">${esc(it.t)}</div>
       <div class="meta">${it.gr ? `<span class="badge grade">${esc(it.gr)}</span>` : ""}${tabL ? `<span class="badge tabname">${esc(tabL)}</span>` : ""}${it.s ? `<span class="badge">${esc(it.s)}</span>` : ""}${it.n ? `<span class="badge new">חדש</span>` : ""}</div></div>
     <div class="btns">${btns}</div>
@@ -165,6 +188,23 @@ function rowHtml(it, showTab) {
   </div>`;
 }
 
+// a picture of the material itself: the first page of a Drive file, or the frame of a YouTube video
+function thumbOf(it) {
+  for (const f of it.files) {
+    const y = f.u.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/)([\w-]{11})/);
+    if (y) return {src: `https://i.ytimg.com/vi/${y[1]}/mqdefault.jpg`, big: `https://i.ytimg.com/vi/${y[1]}/hqdefault.jpg`, wide: true, u: f.u};
+    const d = f.f !== "folder" && f.u.match(/(?:drive|docs)\.google\.com\/(?:file\/d\/|(?:document|presentation|spreadsheets)\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/);
+    if (d) return {src: `https://drive.google.com/thumbnail?id=${d[1]}&sz=w320`, big: `https://drive.google.com/thumbnail?id=${d[1]}&sz=w640`, wide: f.f === "ppt", u: f.u};
+  }
+  return null;
+}
+function thumbHtml(it, icon) {
+  const m = FMT[it.files[0].f.replace("achiya:", "")] || FMT.web, t = thumbOf(it);
+  const fb = `<span class="fb" style="background:${m[3]}">${icon}</span>`;
+  if (!t) return `<a class="th noimg" href="${esc(it.files[0].u)}" target="_blank" rel="noopener" aria-hidden="true" tabindex="-1">${fb}</a>`;
+  return `<a class="th${t.wide ? " wide" : ""}" href="${esc(t.u)}" target="_blank" rel="noopener" tabindex="-1" data-big="${esc(t.big)}">` +
+    `<img src="${esc(t.src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('noimg')">${fb}</a>`;
+}
 function rateText(r) { return r.count ? `★ ${r.avg.toFixed(1)} (${r.count})` : "☆ דרגו"; }
 function btnHtml(file) {
   const ach = file.f.startsWith("achiya:"), k = file.f.replace("achiya:", ""), m = FMT[k] || FMT.web;
@@ -207,7 +247,7 @@ function render() {
     const list = sortItems(byCat[c.k]);
     const first = list.slice(0, PAGE).map(i => rowHtml(i, cross)).join("");
     const rest = list.length > PAGE ? `<button class="more" data-cat="${c.k}">הצגת כל ${list.length}</button>` : "";
-    return `<details class="cat" open data-cat="${c.k}"><summary><span><span class="ce">${c.e}</span>${esc(c.l)}</span><span class="cnt">${list.length}</span></summary>${first}${rest}</details>`;
+    return `<details class="cat" open data-cat="${c.k}"><summary><span><span class="ce">${c.e}</span>${esc(c.l)}</span><span class="cnt">${list.length}</span></summary><div class="rows">${first}</div>${rest}</details>`;
   }).join("");
   loadRatings(items);
 }
@@ -230,6 +270,7 @@ function renderChips() {
 }
 
 document.addEventListener("click", async e => {
+  const v = e.target.closest("[data-view]"); if (v) return setView(v.dataset.view);
   const t = e.target.closest("[data-k],[data-fmt],[data-cat].more,[data-rate],[data-fav],[data-ratebtn],[data-clear]");
   const mineP = t && t.closest(".side") ? t.closest(".side").querySelector(".picker") : null;
   document.querySelectorAll(".picker.open").forEach(p => { if (p !== mineP) p.classList.remove("open"); });
@@ -241,7 +282,7 @@ document.addEventListener("click", async e => {
   if (t.classList.contains("more")) {
     const c = t.dataset.cat, sec = t.closest("details");
     const list = sortItems(visibleItems().filter(i => i.c === c));
-    t.remove(); sec.insertAdjacentHTML("beforeend", list.slice(PAGE).map(i => rowHtml(i, !!state.q.trim() || state.fmt === "fav")).join(""));
+    t.remove(); sec.querySelector(".rows").insertAdjacentHTML("beforeend", list.slice(PAGE).map(i => rowHtml(i, !!state.q.trim() || state.fmt === "fav")).join(""));
     return loadRatings(list);
   }
   const row = t.closest(".row"); if (!row) return; const k = row.dataset.id;
@@ -259,6 +300,24 @@ document.getElementById("src").addEventListener("change", e => { state.src = e.t
 document.getElementById("grade").addEventListener("change", e => { state.grade = e.target.value; render(); });
 document.getElementById("sort").addEventListener("change", e => { state.sort = e.target.value; render(); });
 window.addEventListener("ratings-ready", () => D && render());
+function setView(v) {
+  document.getElementById("main").classList.toggle("grid", v === "grid");
+  document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("on", b.dataset.view === v));
+  try { localStorage.setItem("cat2_view", v); } catch (e) {}
+}
+// hovering a thumbnail (mouse only) shows a larger picture of the page
+const peek = document.body.appendChild(Object.assign(document.createElement("div"), {id: "peek"}));
+document.addEventListener("mouseover", e => {
+  const th = e.target.closest(".th[data-big]");
+  if (!th || th.classList.contains("noimg") || document.getElementById("main").classList.contains("grid") || !matchMedia("(hover:hover)").matches) { peek.style.display = "none"; return; }
+  const r = th.getBoundingClientRect();
+  peek.innerHTML = `<img src="${th.dataset.big}" alt="" referrerpolicy="no-referrer">`;
+  peek.style.display = "block";
+  peek.style.top = Math.max(8, Math.min(r.top - 40, innerHeight - 460)) + "px";
+  peek.style.right = (innerWidth - r.left + 12) + "px";
+});
+let savedView = "list"; try { savedView = localStorage.getItem("cat2_view") || "list"; } catch (e) {}
+setView(savedView);
 
 fetch("data.json").then(r => r.json()).then(data => {
   D = data; FAV = new Set(load("fav", [])); MINE = load("mine", {});
