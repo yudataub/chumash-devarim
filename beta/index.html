@@ -316,7 +316,7 @@ document.addEventListener("mouseover", e => {
   peek.style.top = Math.max(8, Math.min(r.top - 40, innerHeight - 460)) + "px";
   peek.style.right = (innerWidth - r.left + 12) + "px";
 });
-let savedView = "list"; try { savedView = localStorage.getItem("cat2_view") || "list"; } catch (e) {}
+let savedView = "grid"; try { savedView = localStorage.getItem("cat2_view") || "grid"; } catch (e) {}
 setView(savedView);
 
 fetch("data.json").then(r => r.json()).then(data => {
