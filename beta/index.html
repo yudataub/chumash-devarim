@@ -48,6 +48,7 @@ main{padding:8px 16px 60px}
 .badge.new{background:#fff7ed;color:#c2410c}
 .btns{display:flex;gap:6px;flex-wrap:wrap}
 .btn{font-size:.8rem;font-weight:700;text-decoration:none;border:1px solid;border-radius:999px;padding:3px 12px;white-space:nowrap}
+.btn .sz{font-weight:400;opacity:.75;margin-inline-start:6px;font-size:.72rem}
 .btn:hover{filter:brightness(.95);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .side{display:flex;align-items:center;gap:8px;flex:0 0 auto}
 .stars{display:inline-flex;direction:ltr}
@@ -148,11 +149,13 @@ function rowHtml(it, showTab) {
 function btnHtml(file) {
   const ach = file.f.startsWith("achiya:"), k = file.f.replace("achiya:", ""), m = FMT[k] || FMT.web;
   const text = ach ? (k !== "web" ? m[1] + " · באתר אחיה" : "באתר אחיה") : m[1];
-  return `<a class="btn" style="color:${m[2]};background:${m[3]};border-color:${m[3]}" href="${esc(file.u)}" target="_blank" rel="noopener">${text}</a>`;
+  return `<a class="btn" style="color:${m[2]};background:${m[3]};border-color:${m[3]}" href="${esc(file.u)}" target="_blank" rel="noopener">${text}${file.z ? `<span class="sz">${esc(file.z)}</span>` : ""}</a>`;
 }
 function sortItems(arr) {
-  if (state.sort === "abc") return arr.sort((a, b) => a.t.localeCompare(b.t, "he"));
-  return arr.sort((a, b) => (rating(b).avg * Math.min(rating(b).count, 3)) - (rating(a).avg * Math.min(rating(a).count, 3)));
+  const abc = (a, b) => a.t.localeCompare(b.t, "he", {numeric: true});
+  if (state.sort === "abc") return arr.sort(abc);
+  const score = i => { const r = rating(i); return r.avg * Math.min(r.count, 3); };
+  return arr.sort((a, b) => (score(b) - score(a)) || abc(a, b));
 }
 
 function render() {
