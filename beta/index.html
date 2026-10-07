@@ -32,13 +32,15 @@ h1{margin:0;font-size:1.6rem;font-weight:800}
 .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .tab.on .n{color:#cbd0dc}
 main{padding:8px 16px 60px}
-.cat{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;overflow:hidden}
-.cat>summary{list-style:none;cursor:pointer;padding:12px 16px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:26px 0;overflow:hidden;box-shadow:0 2px 10px rgba(30,36,51,.06)}
+.cat>summary{list-style:none;cursor:pointer;padding:14px 18px;font-weight:800;font-size:1.18rem;display:flex;justify-content:space-between;align-items:center;
+  background:linear-gradient(90deg,#eef0ff,#f8f9ff 55%,#fff);border-bottom:2px solid #e0e4ff;color:#1e1b4b}
+.cat>summary .ce{font-size:1.35rem;margin-inline-end:8px}
 .cat>summary::-webkit-details-marker{display:none}
 .cat>summary .cnt{background:var(--chip);color:var(--muted);border-radius:999px;padding:1px 10px;font-size:.82rem;font-weight:500}
 .row{display:flex;gap:10px;align-items:center;padding:9px 16px;border-top:1px solid var(--line);flex-wrap:wrap}
 .row:hover{background:#fafbff}
-.ic{font-size:1.25rem;width:28px;text-align:center;flex:0 0 auto}
+.ic{font-size:1.2rem;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .ti{flex:1 1 240px;min-width:0}
 .ti .name{font-weight:500;word-break:break-word}
 .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
@@ -89,7 +91,7 @@ main{padding:8px 16px 60px}
 
 <script>
 // icon, button text, colour, background – the same colours as the Neviim catalogs
-const FMT = {pdf:["📕","PDF","#e11d48","#fde8ec"],word:["📘","Word","#2563eb","#e8eefd"],ppt:["📊","מצגת","#ea580c","#fdece0"],
+const FMT = {pdf:["📕","PDF","#e11d48","#fde8ec"],word:["📘","Word","#2563eb","#e8eefd"],ppt:["🖥️","מצגת","#ea580c","#fdece0"],
   video:["🎬","סרטון","#dc2626","#fde8e8"],game:["🎮","משחק מקוון","#7c3aed","#f1eafe"],web:["🔗","קישור","#4f46e5","#eceafd"],
   folder:["📁","תיקייה","#ca8a04","#fdf6e0"],excel:["📗","Excel","#16a34a","#e7f7ec"],image:["🖼️","תמונה","#0d9488","#e0f5f1"],
   audio:["🎵","שמע","#0891b2","#e0f5fa"]};
@@ -137,7 +139,7 @@ function rowHtml(it, showTab) {
   const btns = it.files.map(btnHtml).join("");
   const stars = [1,2,3,4,5].map(v => `<button class="${v <= shown ? "on" : ""}" data-rate="${v}" aria-label="דירוג ${v}">★</button>`).join("");
   return `<div class="row" data-id="${esc(k)}">
-    <div class="ic">${icon}</div>
+    <div class="ic" style="background:${(FMT[it.files[0].f.replace("achiya:", "")] || FMT.web)[3]}">${icon}</div>
     <div class="ti"><div class="name">${esc(it.t)}</div>
       <div class="meta">${it.gr ? `<span class="badge grade">${esc(it.gr)}</span>` : ""}${tabL ? `<span class="badge tabname">${esc(tabL)}</span>` : ""}${it.s ? `<span class="badge">${esc(it.s)}</span>` : ""}${it.n ? `<span class="badge new">חדש</span>` : ""}</div></div>
     <div class="btns">${btns}</div>
@@ -168,7 +170,7 @@ function render() {
     const list = sortItems(byCat[c.k]);
     const first = list.slice(0, PAGE).map(i => rowHtml(i, cross)).join("");
     const rest = list.length > PAGE ? `<button class="more" data-cat="${c.k}">הצגת כל ${list.length}</button>` : "";
-    return `<details class="cat" open data-cat="${c.k}"><summary><span>${c.e} ${esc(c.l)}</span><span class="cnt">${list.length}</span></summary>${first}${rest}</details>`;
+    return `<details class="cat" open data-cat="${c.k}"><summary><span><span class="ce">${c.e}</span>${esc(c.l)}</span><span class="cnt">${list.length}</span></summary>${first}${rest}</details>`;
   }).join("");
   loadRatings(items);
 }
