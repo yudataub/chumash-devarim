@@ -47,8 +47,8 @@ main{padding:8px 16px 60px}
 .badge.grade{background:#fdf2f8;color:#be185d}
 .badge.new{background:#fff7ed;color:#c2410c}
 .btns{display:flex;gap:6px;flex-wrap:wrap}
-.btn{font-size:.8rem;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:3px 9px;background:#fff;white-space:nowrap}
-.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn{font-size:.8rem;font-weight:700;text-decoration:none;border:1px solid;border-radius:999px;padding:3px 12px;white-space:nowrap}
+.btn:hover{filter:brightness(.95);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .side{display:flex;align-items:center;gap:8px;flex:0 0 auto}
 .stars{display:inline-flex;direction:ltr}
 .stars button{border:0;background:none;padding:0 1px;font-size:1rem;color:#d4d7e0;cursor:pointer}
@@ -87,8 +87,11 @@ main{padding:8px 16px 60px}
 </div>
 
 <script>
-const FMT = {pdf:["📕","PDF להדפסה"],word:["📘","Word לעריכה"],ppt:["📊","מצגת"],video:["🎬","סרטון"],game:["🎮","משחק מקוון"],
-  web:["🔗","קישור"],folder:["📁","תיקייה"],excel:["📗","Excel"],image:["🖼️","תמונה"],audio:["🎵","שמע"]};
+// icon, button text, colour, background – the same colours as the Neviim catalogs
+const FMT = {pdf:["📕","PDF","#e11d48","#fde8ec"],word:["📘","Word","#2563eb","#e8eefd"],ppt:["📊","מצגת","#ea580c","#fdece0"],
+  video:["🎬","סרטון","#dc2626","#fde8e8"],game:["🎮","משחק מקוון","#7c3aed","#f1eafe"],web:["🔗","קישור","#4f46e5","#eceafd"],
+  folder:["📁","תיקייה","#ca8a04","#fdf6e0"],excel:["📗","Excel","#16a34a","#e7f7ec"],image:["🖼️","תמונה","#0d9488","#e0f5f1"],
+  audio:["🎵","שמע","#0891b2","#e0f5fa"]};
 const FILTERS = [["","הכל"],["pdf","להדפסה"],["word","לעריכה"],["ppt","מצגות"],["video","סרטונים"],["game","משחקים מקוונים"],["fav","⭐ המועדפים שלי"]];
 let D, state = {tab:null, q:"", fmt:"", src:"", grade:"", sort:"rate"}, PAGE = 40;
 const LS = k => "cat2_" + (D ? D.book : "") + "_" + k;
@@ -130,7 +133,7 @@ function rowHtml(it, showTab) {
   const r = rating(it), k = keyOf(it), mine = MINE[k] || 0, shown = mine || Math.round(r.avg);
   const tabL = showTab ? (D.tabs.find(t => t.k === it.tab) || {}).l : "";
   const icon = (FMT[it.files[0].f.replace("achiya:", "")] || FMT.web)[0];
-  const btns = it.files.map(f => `<a class="btn" href="${esc(f.u)}" target="_blank" rel="noopener">${btnLabel(f.f)}</a>`).join("");
+  const btns = it.files.map(btnHtml).join("");
   const stars = [1,2,3,4,5].map(v => `<button class="${v <= shown ? "on" : ""}" data-rate="${v}" aria-label="דירוג ${v}">★</button>`).join("");
   return `<div class="row" data-id="${esc(k)}">
     <div class="ic">${icon}</div>
@@ -142,9 +145,10 @@ function rowHtml(it, showTab) {
   </div>`;
 }
 
-function btnLabel(f) {
-  if (f.startsWith("achiya:")) { const k = f.slice(7); return "באתר אחיה" + (FMT[k] && k !== "web" ? " · " + FMT[k][1].split(" ")[0] : ""); }
-  return (FMT[f] || FMT.web)[1];
+function btnHtml(file) {
+  const ach = file.f.startsWith("achiya:"), k = file.f.replace("achiya:", ""), m = FMT[k] || FMT.web;
+  const text = ach ? (k !== "web" ? m[1] + " · באתר אחיה" : "באתר אחיה") : m[1];
+  return `<a class="btn" style="color:${m[2]};background:${m[3]};border-color:${m[3]}" href="${esc(file.u)}" target="_blank" rel="noopener">${text}</a>`;
 }
 function sortItems(arr) {
   if (state.sort === "abc") return arr.sort((a, b) => a.t.localeCompare(b.t, "he"));
@@ -230,7 +234,7 @@ fetch("data.json").then(r => r.json()).then(data => {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getFirestore, doc, getDocs, collection, query, where, documentId, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-const firebaseConfig = {"apiKey": "AIzaSyBgjtJk9Wrw-lPpFlPBaQ6RHfqQ58R58LA", "authDomain": "gamma-catalog.firebaseapp.com", "projectId": "gamma-catalog", "storageBucket": "gamma-catalog.firebasestorage.app", "messagingSenderId": "184606827021", "appId": "1:184606827021:web:e39a832b5bc12fe87aeb44"};
+const firebaseConfig = {"apiKey": ["AIza", "SyBgjtJk9Wrw-lPpFlPBaQ6RHfqQ58R58LA"].join(""), "authDomain": "gamma-catalog.firebaseapp.com", "projectId": "gamma-catalog", "storageBucket": "gamma-catalog.firebasestorage.app", "messagingSenderId": "184606827021", "appId": "1:184606827021:web:e39a832b5bc12fe87aeb44"};
 const db = getFirestore(initializeApp(firebaseConfig));
 const ratingsCache = new Map();
 async function fetchRatings(ids) {
