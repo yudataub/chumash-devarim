@@ -149,7 +149,7 @@ function rowHtml(it, showTab) {
 function btnHtml(file) {
   const ach = file.f.startsWith("achiya:"), k = file.f.replace("achiya:", ""), m = FMT[k] || FMT.web;
   const text = ach ? (k !== "web" ? m[1] + " · באתר אחיה" : "באתר אחיה") : m[1];
-  return `<a class="btn" style="color:${m[2]};background:${m[3]};border-color:${m[3]}" href="${esc(file.u)}" target="_blank" rel="noopener">${text}${file.z ? `<span class="sz">${esc(file.z)}</span>` : ""}</a>`;
+  return `<a class="btn" style="color:${m[2]};background:${m[3]};border-color:${m[3]}" href="${esc(file.u)}" target="_blank" rel="noopener">${text}${file.z ? ` <span class="sz">· ${esc(file.z)}</span>` : ""}</a>`;
 }
 function sortItems(arr) {
   const abc = (a, b) => a.t.localeCompare(b.t, "he", {numeric: true});
